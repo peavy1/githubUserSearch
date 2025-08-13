@@ -7,5 +7,5 @@ import kotlinx.coroutines.flow.Flow
 import retrofit2.Response
 
 interface SearchRepository {
-    fun searchBookPaging(query: String, pag: Int): Flow<PagingData<GithubUser>>
+    fun searchBookPaging(query: String): Flow<PagingData<GithubUser>>
 }

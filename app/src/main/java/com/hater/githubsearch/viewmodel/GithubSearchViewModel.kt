@@ -28,7 +28,7 @@ class GithubSearchViewModel @Inject constructor(
 
     fun searchUser(query: String) {
         viewModelScope.launch {
-            searchRepository.searchBookPaging(query, 1)
+            searchRepository.searchBookPaging(query)
                 .cachedIn(viewModelScope)
                 .collectLatest {
                     _searchPagingResult.value = it

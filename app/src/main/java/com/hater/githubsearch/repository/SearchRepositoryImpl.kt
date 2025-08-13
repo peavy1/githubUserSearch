@@ -14,7 +14,7 @@ import javax.inject.Singleton
 class SearchRepositoryImpl @Inject constructor(
     private val api: GithubSearchApi
 ): SearchRepository {
-    override fun searchBookPaging(query: String, pag: Int): Flow<PagingData<GithubUser>> {
+    override fun searchBookPaging(query: String): Flow<PagingData<GithubUser>> {
         val pagingSourceFactory = { SearchPagingSource(api, query) }
         return Pager(
             config = PagingConfig(

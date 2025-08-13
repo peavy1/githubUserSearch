@@ -33,13 +33,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-
         initSearchButton()
         initRecyclerView()
         initObserve()
         initLoadState()
     }
-
 
     private fun initSearchButton() {
         binding.btnSearch.setOnClickListener {
