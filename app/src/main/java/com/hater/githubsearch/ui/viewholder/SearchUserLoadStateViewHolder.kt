@@ -3,6 +3,7 @@ package com.hater.githubsearch.ui.viewholder
 import androidx.core.view.isVisible
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.RecyclerView
+import com.hater.githubsearch.R
 import com.hater.githubsearch.databinding.ItemLoadStateBinding
 
 class SearchUserLoadStateViewHolder(
@@ -18,7 +19,7 @@ class SearchUserLoadStateViewHolder(
 
     fun bind(loadState: LoadState) {
         if (loadState is LoadState.Error) {
-            binding.error.text = "Error occurred"
+            binding.error.text = itemView.context.getString(R.string.error_occurred)
         }
         binding.errorLoadingProgressBar.isVisible = loadState is LoadState.Loading
         binding.btnRetry.isVisible = loadState is LoadState.Error

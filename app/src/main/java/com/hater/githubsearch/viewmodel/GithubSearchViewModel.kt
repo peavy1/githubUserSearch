@@ -1,5 +1,6 @@
 package com.hater.githubsearch.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -7,6 +8,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.hater.githubsearch.model.GithubUser
+import com.hater.githubsearch.model.UserInfo
 import com.hater.githubsearch.repository.SearchPagingSource
 import com.hater.githubsearch.repository.SearchRepository
 import com.hater.githubsearch.util.Constants.PAGING_SIZE
@@ -23,8 +25,8 @@ class GithubSearchViewModel @Inject constructor(
     private val searchRepository: SearchRepository
 ): ViewModel() {
 
-    private val _searchPagingResult = MutableStateFlow<PagingData<GithubUser>>(PagingData.empty())
-    val searchPagingResult: StateFlow<PagingData<GithubUser>> = _searchPagingResult.asStateFlow()
+    private val _searchPagingResult = MutableStateFlow<PagingData<UserInfo>>(PagingData.empty())
+    val searchPagingResult: StateFlow<PagingData<UserInfo>> = _searchPagingResult.asStateFlow()
 
     fun searchUser(query: String) {
         viewModelScope.launch {
@@ -35,6 +37,4 @@ class GithubSearchViewModel @Inject constructor(
                 }
         }
     }
-
-
 }

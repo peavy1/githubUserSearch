@@ -5,8 +5,11 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.hater.githubsearch.api.GithubSearchApi
 import com.hater.githubsearch.model.GithubUser
+import com.hater.githubsearch.model.GithubUserRepo
+import com.hater.githubsearch.model.UserInfo
 import com.hater.githubsearch.util.Constants.PAGING_SIZE
 import kotlinx.coroutines.flow.Flow
+import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,7 +17,7 @@ import javax.inject.Singleton
 class SearchRepositoryImpl @Inject constructor(
     private val api: GithubSearchApi
 ): SearchRepository {
-    override fun searchBookPaging(query: String): Flow<PagingData<GithubUser>> {
+    override fun searchBookPaging(query: String): Flow<PagingData<UserInfo>> {
         val pagingSourceFactory = { SearchPagingSource(api, query) }
         return Pager(
             config = PagingConfig(
@@ -24,5 +27,10 @@ class SearchRepositoryImpl @Inject constructor(
             pagingSourceFactory = pagingSourceFactory
         ).flow
     }
+
+    override suspend fun searchRepo(query: String): Response<GithubUserRepo> {
+        return api.getUserRepoCount(query)
+    }
+
 
 }

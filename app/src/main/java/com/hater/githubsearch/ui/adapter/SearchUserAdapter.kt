@@ -9,9 +9,10 @@ import androidx.recyclerview.widget.RecyclerView.Adapter
 import com.hater.githubsearch.R
 import com.hater.githubsearch.databinding.ViewholderSearchUserBinding
 import com.hater.githubsearch.model.GithubUser
+import com.hater.githubsearch.model.UserInfo
 import com.hater.githubsearch.ui.viewholder.SearchUserViewHolder
 
-class SearchUserAdapter: PagingDataAdapter<GithubUser, SearchUserViewHolder>(SearchUserDiffCallback) {
+class SearchUserAdapter: PagingDataAdapter<UserInfo, SearchUserViewHolder>(SearchUserDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchUserViewHolder {
         return SearchUserViewHolder(
@@ -27,12 +28,12 @@ class SearchUserAdapter: PagingDataAdapter<GithubUser, SearchUserViewHolder>(Sea
     }
 
     companion object {
-        private val SearchUserDiffCallback = object : DiffUtil.ItemCallback<GithubUser>() {
-            override fun areItemsTheSame(oldItem: GithubUser, newItem: GithubUser): Boolean {
+        private val SearchUserDiffCallback = object : DiffUtil.ItemCallback<UserInfo>() {
+            override fun areItemsTheSame(oldItem: UserInfo, newItem: UserInfo): Boolean {
                 return oldItem.id == newItem.id
             }
 
-            override fun areContentsTheSame(oldItem: GithubUser, newItem: GithubUser): Boolean {
+            override fun areContentsTheSame(oldItem: UserInfo, newItem: UserInfo): Boolean {
                 return oldItem == newItem
             }
         }

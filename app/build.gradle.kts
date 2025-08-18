@@ -68,16 +68,21 @@ dependencies {
     implementation ("androidx.activity:activity-ktx:1.9.0")
 
     // Coroutine
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     // Coil
     implementation ("io.coil-kt:coil:2.4.0")
 
     // Paging
-    implementation ("androidx.paging:paging-runtime-ktx:3.1.1")
+    implementation ("androidx.paging:paging-runtime-ktx:3.3.6")
+    androidTestImplementation ("androidx.paging:paging-runtime-ktx:3.3.6")
+    androidTestImplementation ("androidx.paging:paging-testing:3.3.6")
 
     // Hilt extension
     implementation("com.google.dagger:hilt-android:2.51.1")
     ksp("com.google.dagger:hilt-compiler:2.51.1")
+
+    implementation ("com.jakewharton.rxbinding4:rxbinding:4.0.0")
+
 }
