@@ -13,12 +13,14 @@ import com.hater.githubsearch.util.Constants.USER_NAME_QUALIFIER
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withTimeoutOrNull
 
 
 class SearchPagingSource(
     private val api: GithubSearchApi,
     private val query: String
 ) : PagingSource<Int, UserInfo>() {
+
 
     override fun getRefreshKey(state: PagingState<Int, UserInfo>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
@@ -40,23 +42,23 @@ class SearchPagingSource(
                     }
                 }
             }
-            val repoCountList = repoCountsDeferred.awaitAll().filterNotNull()
 
+            val repoMap = repoCountsDeferred.awaitAll()
+                .filterNotNull()
+                .associateBy { it.login }
 
-            val userinfo = mutableListOf<UserInfo>()
-            searchUserList.map { user ->
-                 repoCountList.firstOrNull { user.login == it.login }?.let { findUserRepo ->
-                     userinfo.add(
-                         UserInfo(
-                             login = user.login,
-                             id = user.id,
-                             avatarUrl = user.avatarUrl,
-                             htmlUrl = user.htmlUrl,
-                             publicRepoCount = findUserRepo.publicRepoCount
-                         )
-                     )
-                 }
+            val userinfo = searchUserList.mapNotNull { user ->
+                repoMap[user.login]?.let { repo ->
+                    UserInfo(
+                        login = user.login,
+                        id = user.id,
+                        avatarUrl = user.avatarUrl,
+                        htmlUrl = user.htmlUrl,
+                        publicRepoCount = repo.publicRepoCount
+                    )
+                }
             }
+
 
             val prevKey = if (pageNumber == STARTING_PAGE_INDEX) { null } else { pageNumber - 1 }
             val nextKey = if (userinfo.isEmpty()) { null } else { pageNumber + 1 }
@@ -74,3 +76,4 @@ class SearchPagingSource(
         const val STARTING_PAGE_INDEX = 1
     }
 }
+
