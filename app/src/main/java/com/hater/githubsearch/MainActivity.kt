@@ -3,6 +3,7 @@ package com.hater.githubsearch
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
+import android.util.Log
 import android.view.inputmethod.EditorInfo
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
@@ -15,8 +16,16 @@ import com.hater.githubsearch.ui.adapter.SearchUserLoadStateAdapter
 import com.hater.githubsearch.viewmodel.GithubSearchViewModel
 import com.jakewharton.rxbinding4.widget.textChanges
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -34,7 +43,8 @@ class MainActivity : AppCompatActivity() {
 
     private val searchViewModel: GithubSearchViewModel by viewModels()
     private lateinit var searchUserAdapter: SearchUserAdapter
-    private lateinit var searchEditTextSubscription: Disposable
+    private val compositeDisposable = CompositeDisposable()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -45,17 +55,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initSearchUserEditText() {
-        val editTextChangeObservable = binding.searchEditText.textChanges()
-        searchEditTextSubscription =
-            editTextChangeObservable
-                .debounce(2000, TimeUnit.MILLISECONDS)
-                .subscribeOn(Schedulers.io())
-                .subscribe {
-                    val query = it.trim().toString()
-                    if (query.isNotEmpty()) {
-                        callSearch(query)
-                    }
-                }
+        val searchDisposable = binding.searchEditText.textChanges()
+            .debounce(2000, TimeUnit.MILLISECONDS)
+            .map { it.toString().trim() }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { query ->
+                callSearch(query)
+            }
+        compositeDisposable.add(searchDisposable)
     }
 
     private fun callSearch(query: String) {
@@ -103,6 +110,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        searchEditTextSubscription.dispose()
+        compositeDisposable.clear()
     }
 }
+
