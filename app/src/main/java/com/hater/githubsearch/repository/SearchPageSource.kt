@@ -43,22 +43,22 @@ class SearchPagingSource(
                 }
             }
 
-            val repoMap = repoCountsDeferred.awaitAll()
-                .filterNotNull()
-                .associateBy { it.login }
+            val repoCountList = repoCountsDeferred.awaitAll().filterNotNull()
 
-            val userinfo = searchUserList.mapNotNull { user ->
-                repoMap[user.login]?.let { repo ->
-                    UserInfo(
-                        login = user.login,
-                        id = user.id,
-                        avatarUrl = user.avatarUrl,
-                        htmlUrl = user.htmlUrl,
-                        publicRepoCount = repo.publicRepoCount
+            val userinfo = mutableListOf<UserInfo>()
+            searchUserList.map { user ->
+                repoCountList.firstOrNull { user.login == it.login }?.let { findUserRepo ->
+                    userinfo.add(
+                        UserInfo(
+                            login = user.login,
+                            id = user.id,
+                            avatarUrl = user.avatarUrl,
+                            htmlUrl = user.htmlUrl,
+                            publicRepoCount = findUserRepo.publicRepoCount
+                        )
                     )
                 }
             }
-
 
             val prevKey = if (pageNumber == STARTING_PAGE_INDEX) { null } else { pageNumber - 1 }
             val nextKey = if (userinfo.isEmpty()) { null } else { pageNumber + 1 }
@@ -77,3 +77,20 @@ class SearchPagingSource(
     }
 }
 
+    /*
+    val repoMap = repoCountsDeferred.awaitAll()
+               .filterNotNull()
+               .associateBy { it.login }
+
+           val userinfo = searchUserList.mapNotNull { user ->
+               repoMap[user.login]?.let { repo ->
+                   UserInfo(
+                       login = user.login,
+                       id = user.id,
+                       avatarUrl = user.avatarUrl,
+                       htmlUrl = user.htmlUrl,
+                       publicRepoCount = repo.publicRepoCount
+                   )
+               }
+           }
+    */

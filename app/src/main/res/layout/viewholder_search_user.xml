@@ -15,6 +15,7 @@
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/user_name"
+        app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintStart_toEndOf="@+id/user_profile"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/user_profile"
@@ -31,7 +32,8 @@
         app:layout_constraintStart_toStartOf="@+id/user_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/user_name"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/user_profile"
+        android:layout_marginTop="10dp"
         android:textSize="14sp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"/>
