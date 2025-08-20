@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import retrofit2.Response
 
 interface SearchRepository {
-    fun searchBookPaging(query: String): Flow<PagingData<UserInfo>>
+    fun searchUserPaging(query: String): Flow<PagingData<UserInfo>>
 
     suspend fun searchRepo(query: String): Response<GithubUserRepo>
 

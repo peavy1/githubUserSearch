@@ -32,7 +32,7 @@ class SearchPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, UserInfo> {
         return try {
             val pageNumber = params.key ?: STARTING_PAGE_INDEX
-            val result = api.searchUser("$query$USER_NAME_QUALIFIER", pageNumber)
+            val result = api.searchUser(query, pageNumber)
             val searchUserList = result.body()?.items ?: emptyList()
 
             val repoCountsDeferred = coroutineScope {

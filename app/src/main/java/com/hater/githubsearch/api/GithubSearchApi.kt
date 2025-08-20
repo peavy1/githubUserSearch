@@ -15,8 +15,6 @@ interface GithubSearchApi {
         @Query("page") page:Int
     ): Response<GithubUserResponse>
 
-    // https://api.github.com/users/peavy1
-
     @GET("users/{username}")
     suspend fun getUserRepoCount(
         @Path("username") username: String

@@ -15,6 +15,6 @@ abstract class RepositoryModule {
     @Singleton
     @Binds
     abstract fun bindGithubSearchRepository(
-        bookSearchRepositoryImpl: SearchRepositoryImpl,
+        userSearchRepositoryImpl: SearchRepositoryImpl,
     ): SearchRepository
 }
