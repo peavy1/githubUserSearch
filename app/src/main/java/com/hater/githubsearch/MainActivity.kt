@@ -58,7 +58,6 @@ class MainActivity : AppCompatActivity() {
         val searchDisposable = binding.searchEditText.textChanges()
             .debounce(2000, TimeUnit.MILLISECONDS)
             .map { it.toString().trim() }
-            .observeOn(AndroidSchedulers.mainThread())
             .subscribe { query ->
                 callSearch(query)
             }
