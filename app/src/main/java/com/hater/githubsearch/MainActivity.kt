@@ -2,11 +2,9 @@ package com.hater.githubsearch
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Editable
-import android.util.Log
-import android.view.inputmethod.EditorInfo
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -14,21 +12,10 @@ import com.hater.githubsearch.databinding.ActivityMainBinding
 import com.hater.githubsearch.ui.adapter.SearchUserAdapter
 import com.hater.githubsearch.ui.adapter.SearchUserLoadStateAdapter
 import com.hater.githubsearch.viewmodel.GithubSearchViewModel
-import com.jakewharton.rxbinding4.widget.textChanges
 import dagger.hilt.android.AndroidEntryPoint
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.schedulers.Schedulers
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
+
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -43,7 +30,6 @@ class MainActivity : AppCompatActivity() {
 
     private val searchViewModel: GithubSearchViewModel by viewModels()
     private lateinit var searchUserAdapter: SearchUserAdapter
-    private val compositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,14 +41,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initSearchUserEditText() {
-        val searchDisposable = binding.searchEditText.textChanges()
-            .debounce(2000, TimeUnit.MILLISECONDS)
-            .map { it.toString().trim() }
-            .subscribe { query ->
-                callSearch(query)
+        binding.searchEditText.addTextChangedListener { editable ->
+            searchViewModel.updateKeyword(editable.toString())
+        }
+
+        lifecycleScope.launch {
+            searchViewModel.debouncedKeyword.collectLatest { keyword ->
+                if (keyword.isNotEmpty()) {
+                    callSearch(keyword)
+                }
             }
-        compositeDisposable.add(searchDisposable)
+        }
     }
+
+
 
     private fun callSearch(query: String) {
         searchViewModel.searchUser(query)
@@ -105,11 +97,6 @@ class MainActivity : AppCompatActivity() {
 
             binding.progressBar.isVisible = loadState.refresh is LoadState.Loading
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.clear()
     }
 }
 
