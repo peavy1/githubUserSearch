@@ -7,6 +7,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.hater.githubsearch.model.UserInfo
 import com.hater.githubsearch.repository.SearchRepository
+import com.hater.githubsearch.util.AppUtil.debounce
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,19 +31,19 @@ class GithubSearchViewModel @Inject constructor(
     private val _searchPagingResult = MutableStateFlow<PagingData<UserInfo>>(PagingData.empty())
     val searchPagingResult: StateFlow<PagingData<UserInfo>> = _searchPagingResult.asStateFlow()
 
-    val debouncedKeyword: StateFlow<String> = keyword
-        .debounce(2000L)
-        .filter { it.isNotEmpty() }
-        .distinctUntilChanged()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ""
-        )
-
-    fun updateKeyword(text: String) {
-        keyword.value = text
+    private val debouncedSearch = debounce<String>(
+        timeMillis = 2000L,
+        coroutineScope = viewModelScope
+    ) { query ->
+        searchUser(query)
     }
+
+    fun updateSearchQuery(query: String) {
+        if (query.length > 1) {
+            debouncedSearch(query)
+        }
+    }
+
 
     fun searchUser(query: String) {
         viewModelScope.launch {

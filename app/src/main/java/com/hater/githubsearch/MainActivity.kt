@@ -2,6 +2,8 @@ package com.hater.githubsearch
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
@@ -41,17 +43,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initSearchUserEditText() {
-        binding.searchEditText.addTextChangedListener { editable ->
-            searchViewModel.updateKeyword(editable.toString())
-        }
-
-        lifecycleScope.launch {
-            searchViewModel.debouncedKeyword.collectLatest { keyword ->
-                if (keyword.isNotEmpty()) {
-                    callSearch(keyword)
-                }
+        binding.searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                searchViewModel.updateSearchQuery(s.toString())
             }
-        }
+            override fun afterTextChanged(s: Editable?) {}
+        })
     }
 
 
