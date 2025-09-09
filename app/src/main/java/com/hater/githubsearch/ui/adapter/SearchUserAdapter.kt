@@ -12,6 +12,7 @@ import com.hater.githubsearch.databinding.ViewholderSearchUserBinding
 import com.hater.githubsearch.model.GithubUser
 import com.hater.githubsearch.model.UserInfo
 import com.hater.githubsearch.ui.viewholder.SearchUserViewHolder
+import com.hater.githubsearch.util.AppUtil
 import com.hater.githubsearch.util.ImageLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,9 +21,14 @@ import kotlinx.coroutines.launch
 
 class SearchUserAdapter: PagingDataAdapter<UserInfo, SearchUserViewHolder>(SearchUserDiffCallback) {
 
+    private var targetImageSizePx: Int = 0
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchUserViewHolder {
+        targetImageSizePx = AppUtil.dpToPx(parent.context, 90)
+
         return SearchUserViewHolder(
-            ViewholderSearchUserBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ViewholderSearchUserBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            targetImageSizePx
         )
     }
 

@@ -3,7 +3,6 @@ package com.hater.githubsearch.ui.viewholder
 import android.content.Intent
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import com.hater.githubsearch.MainActivity
 import com.hater.githubsearch.R
 import com.hater.githubsearch.UserDetailActivity
@@ -19,7 +18,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class SearchUserViewHolder(
-    private val binding:ViewholderSearchUserBinding
+    private val binding:ViewholderSearchUserBinding,
+    private val targetImageSizePx: Int
 ): RecyclerView.ViewHolder(binding.root) {
 
     var imageLoadJob: Job? = null
@@ -28,7 +28,7 @@ class SearchUserViewHolder(
         imageLoadJob?.cancel()
         binding.userProfile.setImageBitmap(null)
         imageLoadJob = CoroutineScope(Dispatchers.Main).launch {
-            ImageLoader.loadImage(githubUser.avatarUrl)?.let {
+            ImageLoader.loadImage(githubUser.avatarUrl, targetImageSizePx, targetImageSizePx)?.let {
                 binding.userProfile.setImageBitmap(it)
             }
         }
