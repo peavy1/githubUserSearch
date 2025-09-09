@@ -3,7 +3,6 @@ package com.hater.githubsearch.ui.viewholder
 import android.content.Intent
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import com.hater.githubsearch.MainActivity
 import com.hater.githubsearch.R
 import com.hater.githubsearch.UserDetailActivity
