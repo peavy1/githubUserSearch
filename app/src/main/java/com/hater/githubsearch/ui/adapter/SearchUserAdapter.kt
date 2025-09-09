@@ -2,6 +2,7 @@ package com.hater.githubsearch.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -11,6 +12,11 @@ import com.hater.githubsearch.databinding.ViewholderSearchUserBinding
 import com.hater.githubsearch.model.GithubUser
 import com.hater.githubsearch.model.UserInfo
 import com.hater.githubsearch.ui.viewholder.SearchUserViewHolder
+import com.hater.githubsearch.util.ImageLoader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class SearchUserAdapter: PagingDataAdapter<UserInfo, SearchUserViewHolder>(SearchUserDiffCallback) {
 
@@ -25,6 +31,11 @@ class SearchUserAdapter: PagingDataAdapter<UserInfo, SearchUserViewHolder>(Searc
         user?.let {
             holder.bind(user)
         }
+    }
+
+    override fun onViewRecycled(holder: SearchUserViewHolder) {
+        super.onViewRecycled(holder)
+        holder.imageLoadJob?.cancel()
     }
 
     companion object {
