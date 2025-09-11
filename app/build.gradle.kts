@@ -91,9 +91,22 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation ("androidx.test.ext:truth:1.4.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+
+    // Hilt 테스트를 위한 의존성
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+    kspTest("com.google.dagger:hilt-android-compiler:2.51.1")
+
+    // Kotlin 테스트 라이브러리 (assertFailsWith)
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.22")
+
     kspAndroidTest("com.google.dagger:hilt-compiler:2.51.1")
     androidTestImplementation("androidx.paging:paging-testing:3.3.6")
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     androidTestImplementation("app.cash.turbine:turbine:1.0.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation("com.google.truth:truth:1.1.3")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+
+
+
 }

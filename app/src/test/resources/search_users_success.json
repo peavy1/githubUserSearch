@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "login": "UserA",
+      "id": 101,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1",
+      "html_url": "https://github.com/UserA"
+    },
+    {
+      "login": "UserB",
+      "id": 102,
+      "avatar_url": "https://avatars.githubusercontent.com/u/2",
+      "html_url": "https://github.com/UserB"
+    }
+  ]
+}
