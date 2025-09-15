@@ -5,6 +5,9 @@ import com.hater.githubsearch.api.GithubSearchApi
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import com.google.gson.reflect.TypeToken
+import com.hater.githubsearch.model.GithubUser
+import com.hater.githubsearch.model.GithubUserRepo
 import com.hater.githubsearch.model.GithubUserResponse
 import com.hater.githubsearch.model.UserInfo
 import kotlinx.coroutines.test.runTest
@@ -49,7 +52,7 @@ class GithubSearchApiTest {
     }
 
     @Test
-    fun searchUserResponse_JsonSyntaxException() = runTest {
+    fun searchUserResponseJsonSyntaxException() = runTest {
         val mockResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
             .setBody(getJson("github_parse_error_response.json"))
@@ -62,7 +65,7 @@ class GithubSearchApiTest {
 
 
     @Test
-    fun searchUserResponse_Empty() = runTest {
+    fun searchUserResponseEmpty() = runTest {
         val mockResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
             .setBody(getJson("search_result_empty.json"))
@@ -76,7 +79,7 @@ class GithubSearchApiTest {
     }
 
     @Test
-    fun searchUserResponse_Request_Path() = runTest {
+    fun searchUserResponseRequestPath() = runTest {
         val mockResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
             .setBody(getJson("search_result_empty.json"))
@@ -90,7 +93,7 @@ class GithubSearchApiTest {
     }
 
     @Test
-    fun searchUserResponse_GithubUserResponse() = runTest {
+    fun searchUserResponseGithubUserResponse() = runTest {
         val mockResponse = MockResponse()
             .setResponseCode(HttpURLConnection.HTTP_OK)
             .setBody(getJson("github_success_response.json"))
@@ -114,7 +117,7 @@ class GithubSearchApiTest {
 
 
     @Test
-    fun searchRepo_Async() = runTest {
+    fun searchRepoAsync() = runTest {
         val searchResponseJson = getJson("search_users_success.json")
         val userList = Gson().fromJson(searchResponseJson, GithubUserResponse::class.java).items
 
@@ -140,7 +143,7 @@ class GithubSearchApiTest {
 
 
     @Test
-    fun searchRepo_Async_UserInfo() = runTest {
+    fun searchRepoAsyncUserInfo() = runTest {
         val searchResponseJson = getJson("search_users_success.json")
         val userList = Gson().fromJson(searchResponseJson, GithubUserResponse::class.java).items
 
@@ -192,5 +195,62 @@ class GithubSearchApiTest {
         assertThat(userBInfo?.publicRepoCount).isEqualTo(25)
     }
 
+    @Test
+    fun searchUserRepoAsync() = runTest {
+        val userList = Gson().fromJson(getJson("search_users_success.json"), GithubUserResponse::class.java).items
+        server.enqueue(MockResponse().setBody(getJson("user_a_repos.json")))
+        server.enqueue(MockResponse().setBody(getJson("user_b_repos.json")))
+
+        val repoCountList = coroutineScope {
+            val deferred = userList.map { user ->
+                async { api.getUserRepoCount(user.login).body() }
+            }
+            deferred.awaitAll().filterNotNull()
+        }
+
+        assertThat(repoCountList).hasSize(2)
+        assertThat(repoCountList.find { it.login == "UserA" }?.publicRepoCount).isEqualTo(10)
+        assertThat(repoCountList.find { it.login == "UserB" }?.publicRepoCount).isEqualTo(25)
+    }
+
+    @Test
+    fun searchUserRepoCombine() = runTest {
+        val userList = Gson().fromJson(getJson("search_users_success.json"), GithubUserResponse::class.java).items
+        val listType = object : TypeToken<List<GithubUserRepo>>() {}.type
+        val repoCountList:List<GithubUserRepo>  = Gson().fromJson(getJson("repo_list.json"), listType)
+
+        val finalUserInfoList = combineUserData(userList, repoCountList)
+
+        assertThat(finalUserInfoList).hasSize(2)
+
+        val userAInfo = finalUserInfoList.find { it.login == "UserA" }
+        assertThat(userAInfo).isNotNull()
+        assertThat(userAInfo?.id).isEqualTo(101)
+        assertThat(userAInfo?.publicRepoCount).isEqualTo(10)
+
+
+        val userBInfo = finalUserInfoList.find { it.login == "UserB" }
+        assertThat(userBInfo).isNotNull()
+        assertThat(userBInfo?.id).isEqualTo(102)
+        assertThat(userBInfo?.publicRepoCount).isEqualTo(25)
+    }
+
+
+    private fun combineUserData(
+        users: List<GithubUser>,
+        repos: List<GithubUserRepo>
+    ): List<UserInfo> {
+        return users.mapNotNull { user ->
+            repos.firstOrNull { it.login == user.login }?.let { repoInfo ->
+                UserInfo(
+                    login = user.login,
+                    id = user.id,
+                    avatarUrl = user.avatarUrl,
+                    htmlUrl = user.htmlUrl,
+                    publicRepoCount = repoInfo.publicRepoCount
+                )
+            }
+        }
+    }
 
 }
