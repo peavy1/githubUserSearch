@@ -1,0 +1,14 @@
+[
+  {
+    "login": "UserA",
+    "public_repos": 10
+  },
+  {
+    "login": "UserB",
+    "public_repos": 25
+  },
+  {
+    "login": "UserC",
+    "public_repos": 5
+  }
+]
