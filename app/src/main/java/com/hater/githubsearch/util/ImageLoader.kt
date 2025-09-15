@@ -1,21 +1,19 @@
 package com.hater.githubsearch.util
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.LruCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import android.content.Context
-import com.jakewharton.disklrucache.DiskLruCache
+import java.io.ByteArrayOutputStream
 import java.io.File
-import java.math.BigInteger
 import java.net.URL
-import java.security.MessageDigest
+import java.net.URLEncoder
 
 object ImageLoader {
-
     private lateinit var memoryCache: LruCache<String, Bitmap>
-    private lateinit var diskCache: DiskLruCache
+    private lateinit var diskCache: CustomDiskCache
     private const val DISK_CACHE_SIZE = 1024 * 1024 * 50
 
     fun init(context: Context) {
@@ -28,13 +26,16 @@ object ImageLoader {
         }
 
         val cacheDir = getDiskCacheDir(context, "images")
-        diskCache = DiskLruCache.open(cacheDir, 1, 1, DISK_CACHE_SIZE.toLong())
+        diskCache = CustomDiskCache(cacheDir, DISK_CACHE_SIZE.toLong())
     }
 
     suspend fun loadImage(url: String): Bitmap? {
         if (url.isEmpty()) return null
         val key = urlToKey(url)
-        memoryCache.get(key)?.let { return it }
+
+        memoryCache.get(key)?.let {
+            return it
+        }
 
         val diskBitmap = getBitmapFromDiskCache(key)
         if (diskBitmap != null) {
@@ -45,7 +46,9 @@ object ImageLoader {
         return withContext(Dispatchers.IO) {
             try {
                 val networkBitmap = BitmapFactory.decodeStream(URL(url).openStream())
-                addBitmapToCache(key, networkBitmap)
+                networkBitmap?.let {
+                    addBitmapToCaches(key, it)
+                }
                 networkBitmap
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -55,26 +58,20 @@ object ImageLoader {
     }
 
     private suspend fun getBitmapFromDiskCache(key: String): Bitmap? = withContext(Dispatchers.IO) {
-        diskCache.get(key)?.let { snapshot ->
-            val inputStream = snapshot.getInputStream(0)
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            inputStream.close()
-            bitmap
+        diskCache.getFile(key)?.let { file ->
+            BitmapFactory.decodeFile(file.absolutePath)
         }
     }
 
-
-    private suspend fun addBitmapToCache(key: String, bitmap: Bitmap) = withContext(Dispatchers.IO) {
+    private suspend fun addBitmapToCaches(key: String, bitmap: Bitmap) = withContext(Dispatchers.IO) {
         if (memoryCache.get(key) == null) {
             memoryCache.put(key, bitmap)
         }
 
-        diskCache.edit(key)?.let { editor ->
-            val out = editor.newOutputStream(0)
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-            editor.commit()
-            out.close()
-        }
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        val byteArray = stream.toByteArray()
+        diskCache.put(key, byteArray)
     }
 
     private fun getDiskCacheDir(context: Context, uniqueName: String): File {
@@ -83,7 +80,7 @@ object ImageLoader {
     }
 
     private fun urlToKey(url: String): String {
-        val md = MessageDigest.getInstance("MD5")
-        return BigInteger(1, md.digest(url.toByteArray())).toString(16).padStart(32, '0')
+        return URLEncoder.encode(url, "UTF-8")
     }
 }
+

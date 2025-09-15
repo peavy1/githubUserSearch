@@ -33,11 +33,6 @@ class SearchUserAdapter: PagingDataAdapter<UserInfo, SearchUserViewHolder>(Searc
         }
     }
 
-    override fun onViewRecycled(holder: SearchUserViewHolder) {
-        super.onViewRecycled(holder)
-        holder.imageLoadJob?.cancel()
-    }
-
     companion object {
         private val SearchUserDiffCallback = object : DiffUtil.ItemCallback<UserInfo>() {
             override fun areItemsTheSame(oldItem: UserInfo, newItem: UserInfo): Boolean {

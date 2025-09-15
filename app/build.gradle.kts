@@ -73,7 +73,7 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     // Coil
-//    implementation ("io.coil-kt:coil:2.4.0")
+    implementation ("io.coil-kt:coil:2.4.0")
 
     // Paging
     implementation ("androidx.paging:paging-runtime-ktx:3.3.6")
@@ -85,7 +85,7 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.51.1")
 
 //    implementation ("com.jakewharton.rxbinding4:rxbinding:4.0.0")
-    implementation ("com.jakewharton:disklrucache:2.0.2")
+//    implementation ("com.jakewharton:disklrucache:2.0.2")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
