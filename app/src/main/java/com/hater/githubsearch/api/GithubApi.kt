@@ -3,12 +3,16 @@ package com.hater.githubsearch.api
 import android.util.Log
 import com.google.gson.Gson
 import com.hater.githubsearch.BuildConfig
+import com.hater.githubsearch.api.GithubApiParser.parseGithubUserRepo
+import com.hater.githubsearch.api.GithubApiParser.parseGithubUserSearchResponse
+import com.hater.githubsearch.model.GithubUser
 import com.hater.githubsearch.model.GithubUserRepo
 import com.hater.githubsearch.model.GithubUserResponse
 import com.hater.githubsearch.util.Constants
 import com.hater.githubsearch.util.Constants.TIME_OUT_MILLIS
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -17,9 +21,38 @@ import java.net.URLEncoder
 
 object GithubApi {
 
+    private suspend fun <T : Any> makeRequest(
+        method: HttpMethod,
+        path: String,
+        queryParams: Map<String, Any> = emptyMap(),
+        classOfT: Class<T>
+    ): String? {
+        return withContext(Dispatchers.IO) {
+            var connection: HttpURLConnection? = null
+            try {
+                connection = createConnection(method, path, queryParams)
+                val responseCode = connection.responseCode
+
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val reader = InputStreamReader(connection.inputStream, "UTF-8")
+                    val responseText = BufferedReader(reader).use { it.readText() }
+//                    Gson().fromJson(responseText, classOfT)
+                    responseText
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            } finally {
+                connection?.disconnect()
+            }
+        }
+    }
+
     private fun createConnection(
-        method: String,
-        endpoint: String,
+        httpMethod: HttpMethod,
+        path: String,
         queryParams: Map<String, Any> = emptyMap()
     ): HttpURLConnection {
         val queryString = if (queryParams.isNotEmpty()) {
@@ -29,9 +62,9 @@ object GithubApi {
             }.joinToString("&", prefix = "?")
         } else ""
 
-        val url = URL(Constants.BASE_URL + endpoint + queryString)
+        val url = URL(Constants.BASE_URL + path + queryString)
         val connection = url.openConnection() as HttpURLConnection
-        connection.requestMethod = method
+        connection.requestMethod = httpMethod.method
         connection.connectTimeout = TIME_OUT_MILLIS
         connection.readTimeout = TIME_OUT_MILLIS
         connection.setRequestProperty(Constants.AUTHORIZATION, "${Constants.BEARER} ${BuildConfig.githubApiKey}")
@@ -39,59 +72,25 @@ object GithubApi {
     }
 
     suspend fun searchUser(searchKeyword: String, page: Int): GithubUserResponse? {
-        return withContext(Dispatchers.IO) {
-            val endpoint = "search/users"
-            val queryParams = mapOf(
-                "q" to searchKeyword,
-                "page" to page
-            )
-
-            var connection: HttpURLConnection? = null
-            try {
-                connection = createConnection("GET", endpoint, queryParams)
-                val responseCode = connection.responseCode
-
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    val reader = InputStreamReader(connection.inputStream, "UTF-8")
-                    val responseText = BufferedReader(reader).use { it.readText() }
-                    Gson().fromJson(responseText, GithubUserResponse::class.java)
-                } else {
-                    null
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            } finally {
-                connection?.disconnect()
-            }
-        }
+        val searUser =  makeRequest(
+            method = HttpMethod.GET,
+            path = "search/users",
+            queryParams = mapOf("q" to searchKeyword, "page" to page),
+            classOfT = GithubUserResponse::class.java
+        )
+        return parseGithubUserSearchResponse(searUser)
     }
 
     suspend fun getUserRepoCount(username: String): GithubUserRepo? {
-        return withContext(Dispatchers.IO) {
-            val endpoint = "users/$username"
-            var connection: HttpURLConnection? = null
-            try {
-                connection = createConnection("GET", endpoint)
-                val responseCode = connection.responseCode
-
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    val reader = InputStreamReader(connection.inputStream, "UTF-8")
-                    val responseText = BufferedReader(reader).use { it.readText() }
-                    Gson().fromJson(responseText, GithubUserRepo::class.java)
-                } else {
-                    println("Error: ${connection.responseMessage}")
-                    null
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            } finally {
-                connection?.disconnect()
-            }
-        }
-
+        val userRepo =  makeRequest(
+            method = HttpMethod.GET,
+            path = "users/$username",
+            classOfT = GithubUserRepo::class.java
+        )
+        return parseGithubUserRepo(userRepo)
     }
+
 }
+
 
 
