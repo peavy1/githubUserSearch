@@ -26,7 +26,7 @@ object GithubApi {
         path: String,
         queryParams: Map<String, Any> = emptyMap(),
         classOfT: Class<T>
-    ): String? {
+    ): T? {
         return withContext(Dispatchers.IO) {
             var connection: HttpURLConnection? = null
             try {
@@ -36,8 +36,7 @@ object GithubApi {
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     val reader = InputStreamReader(connection.inputStream, "UTF-8")
                     val responseText = BufferedReader(reader).use { it.readText() }
-//                    Gson().fromJson(responseText, classOfT)
-                    responseText
+                    Gson().fromJson(responseText, classOfT)
                 } else {
                     null
                 }
@@ -72,22 +71,20 @@ object GithubApi {
     }
 
     suspend fun searchUser(searchKeyword: String, page: Int): GithubUserResponse? {
-        val searUser =  makeRequest(
+        return makeRequest(
             method = HttpMethod.GET,
             path = "search/users",
             queryParams = mapOf("q" to searchKeyword, "page" to page),
             classOfT = GithubUserResponse::class.java
         )
-        return parseGithubUserSearchResponse(searUser)
     }
 
     suspend fun getUserRepoCount(username: String): GithubUserRepo? {
-        val userRepo =  makeRequest(
+        return makeRequest(
             method = HttpMethod.GET,
             path = "users/$username",
             classOfT = GithubUserRepo::class.java
         )
-        return parseGithubUserRepo(userRepo)
     }
 
 }
