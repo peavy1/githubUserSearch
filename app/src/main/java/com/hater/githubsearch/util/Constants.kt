@@ -7,5 +7,6 @@ object Constants {
     const val PAGING_SIZE = 30
     const val API_KEY = BuildConfig.githubApiKey
     const val BEARER = "Bearer"
-    const val USER_NAME_QUALIFIER = "+in:login"
+    const val TIME_OUT_MILLIS = 30000
+    const val AUTHORIZATION = "Authorization"
 }

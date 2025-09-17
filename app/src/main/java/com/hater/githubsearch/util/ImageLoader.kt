@@ -45,7 +45,9 @@ object ImageLoader {
 
         return withContext(Dispatchers.IO) {
             try {
-                val networkBitmap = BitmapFactory.decodeStream(URL(url).openStream())
+                val networkBitmap = URL(url).openStream().use { inputStream ->
+                    BitmapFactory.decodeStream(inputStream)
+                }
                 networkBitmap?.let {
                     addBitmapToCaches(key, it)
                 }

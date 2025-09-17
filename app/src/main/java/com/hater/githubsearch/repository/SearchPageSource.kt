@@ -6,10 +6,10 @@ import com.hater.githubsearch.model.GithubUser
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.hater.githubsearch.api.GithubApi
 import com.hater.githubsearch.api.GithubSearchApi
 import com.hater.githubsearch.model.GithubUserRepo
 import com.hater.githubsearch.model.UserInfo
-import com.hater.githubsearch.util.Constants.USER_NAME_QUALIFIER
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -32,13 +32,12 @@ class SearchPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, UserInfo> {
         return try {
             val pageNumber = params.key ?: STARTING_PAGE_INDEX
-            val result = api.searchUser(query, pageNumber)
-            val searchUserList = result.body()?.items ?: emptyList()
+            val searchUserList = GithubApi.searchUser(query, pageNumber)?.items ?: emptyList()
 
             val repoCountsDeferred = coroutineScope {
                 searchUserList.map { user ->
                     async {
-                        api.getUserRepoCount(user.login).body()
+                        GithubApi.getUserRepoCount(user.login)
                     }
                 }
             }
@@ -76,21 +75,3 @@ class SearchPagingSource(
         const val STARTING_PAGE_INDEX = 1
     }
 }
-
-    /*
-    val repoMap = repoCountsDeferred.awaitAll()
-               .filterNotNull()
-               .associateBy { it.login }
-
-           val userinfo = searchUserList.mapNotNull { user ->
-               repoMap[user.login]?.let { repo ->
-                   UserInfo(
-                       login = user.login,
-                       id = user.id,
-                       avatarUrl = user.avatarUrl,
-                       htmlUrl = user.htmlUrl,
-                       publicRepoCount = repo.publicRepoCount
-                   )
-               }
-           }
-    */
