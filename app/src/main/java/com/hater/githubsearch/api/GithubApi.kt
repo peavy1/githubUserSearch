@@ -27,24 +27,30 @@ object GithubApi {
         queryParams: Map<String, Any> = emptyMap(),
         classOfT: Class<T>
     ): T? {
+        val (urlString, connection) = createConnection(method, path, queryParams)
+        HttpLogger.logRequest(method.method, urlString)
+
         return withContext(Dispatchers.IO) {
-            var connection: HttpURLConnection? = null
+
             try {
-                connection = createConnection(method, path, queryParams)
                 val responseCode = connection.responseCode
 
                 if (responseCode == HttpURLConnection.HTTP_OK) {
+                    HttpLogger.logSuccess(responseCode, urlString)
+
                     val reader = InputStreamReader(connection.inputStream, "UTF-8")
                     val responseText = BufferedReader(reader).use { it.readText() }
                     Gson().fromJson(responseText, classOfT)
                 } else {
+                    HttpLogger.logError(responseCode, urlString)
                     null
                 }
             } catch (e: Exception) {
+                HttpLogger.logFailure(e)
                 e.printStackTrace()
                 null
             } finally {
-                connection?.disconnect()
+                connection.disconnect()
             }
         }
     }
@@ -53,7 +59,7 @@ object GithubApi {
         httpMethod: HttpMethod,
         path: String,
         queryParams: Map<String, Any> = emptyMap()
-    ): HttpURLConnection {
+    ): Pair<String, HttpURLConnection> {
         val queryString = if (queryParams.isNotEmpty()) {
             queryParams.map { (key, value) ->
                 val encodedValue = URLEncoder.encode(value.toString(), "UTF-8")
@@ -67,7 +73,7 @@ object GithubApi {
         connection.connectTimeout = TIME_OUT_MILLIS
         connection.readTimeout = TIME_OUT_MILLIS
         connection.setRequestProperty(Constants.AUTHORIZATION, "${Constants.BEARER} ${BuildConfig.githubApiKey}")
-        return connection
+        return Pair(url.toString(), connection)
     }
 
     suspend fun searchUser(searchKeyword: String, page: Int): GithubUserResponse? {
