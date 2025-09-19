@@ -219,7 +219,17 @@ class GithubSearchApiTest {
         val listType = object : TypeToken<List<GithubUserRepo>>() {}.type
         val repoCountList:List<GithubUserRepo>  = Gson().fromJson(getJson("repo_list.json"), listType)
 
-        val finalUserInfoList = combineUserData(userList, repoCountList)
+        val finalUserInfoList = userList.mapNotNull { user ->
+            repoCountList.firstOrNull { it.login == user.login }?.let { repoInfo ->
+                UserInfo(
+                    login = user.login,
+                    id = user.id,
+                    avatarUrl = user.avatarUrl,
+                    htmlUrl = user.htmlUrl,
+                    publicRepoCount = repoInfo.publicRepoCount
+                )
+            }
+        }
 
         assertThat(finalUserInfoList).hasSize(2)
 
@@ -236,21 +246,6 @@ class GithubSearchApiTest {
     }
 
 
-    private fun combineUserData(
-        users: List<GithubUser>,
-        repos: List<GithubUserRepo>
-    ): List<UserInfo> {
-        return users.mapNotNull { user ->
-            repos.firstOrNull { it.login == user.login }?.let { repoInfo ->
-                UserInfo(
-                    login = user.login,
-                    id = user.id,
-                    avatarUrl = user.avatarUrl,
-                    htmlUrl = user.htmlUrl,
-                    publicRepoCount = repoInfo.publicRepoCount
-                )
-            }
-        }
-    }
+
 
 }

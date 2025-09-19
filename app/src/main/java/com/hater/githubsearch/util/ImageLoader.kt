@@ -38,7 +38,7 @@ object ImageLoader {
         }
 
         val diskBitmap = getBitmapFromDiskCache(key)
-        if (diskBitmap != null) {
+        diskBitmap?.let {
             memoryCache.put(key, diskBitmap)
             return diskBitmap
         }
